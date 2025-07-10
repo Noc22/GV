@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Visor de datos</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f2f4f8;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      background-color: #2e7d32;
+      color: white;
+      padding: 10px;
+      margin: 0;
+    }
+
+    h2, h3, h4, h5, h6 {
+      color: #2e7d32;
+    }
+
+    #contenedor {
+      display: flex;
+      height: 100vh;
+    }
+
+    #panel-lateral {
+      width: 300px;
+      background-color: white;
+      padding: 20px;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+    }
+
+    #panel-lateral select,
+    #panel-lateral input,
+    #panel-lateral button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    #panel-lateral button {
+      background-color: #2e7d32;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    #panel-lateral button:hover {
+      background-color: #1b5e20;
+    }
+
+    #mapa-contenedor {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #map {
+      flex: 1;
+    }
+
+    #info {
+      background-color: #e8f5e9;
+      padding: 15px;
+      border-top: 1px solid #ccc;
+      font-size: 0.95rem;
+    }
+
+    #tabla-reportes {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    #tabla-reportes th, #tabla-reportes td {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ccc;
+    }
+
+    #tabla-reportes th {
+      background-color: #2e7d32;
+      color: white;
+    }
+
+    #tabla-reportes tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    canvas {
+      background-color: white;
+      border: 1px solid #ddd;
+      margin-top: 15px;
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    @media (max-width: 768px) {
+      #contenedor {
+        flex-direction: column;
+      }
+      #panel-lateral {
+        width: 100%;
+        height: auto;
+        border-bottom: 1px solid #ccc;
+      }
+      #mapa-contenedor {
+        height: 70vh;
+      }
+      #map {
+        height: 60vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Visor de datos de árboles</h1>
+  <div id="contenedor">
+    <!-- Panel lateral -->
+    <div id="panel-lateral">
+      <h2>Filtro por especie</h2>
+      <select id="filtro-nombre"></select>
+      <h3>Registros</h3>
+      <a href="estadisticas.html" target="_blank">Ver estadísticas por zona</a><br>
+      <a href="formulario.html" target="_blank">Ver formulario de ingreso</a><br>
+      <a href="formulario_arbol.html" target="_blank" id="formulario_arbol">Registrar nuevo árbol</a>
+      <ul id="lista-especies"></ul>
+      <h4>Búsqueda de estructura</h4>
+      <input list="lista-estructuras" id="busqueda-estructura" placeholder="Ej: cancha, administración">
+      <datalist id="lista-estructuras"></datalist>
+      <button onclick="buscarEstructura()">Buscar</button>
+      <h5>Modificacion de registros</h5>
+      <button id="btn-editar-arbol">Editar ubicación de árbol</button>
+      <h6>Consultar / Eliminar reportes</h6>
+      <!-- Filtros -->
+      <input type="text" id="filtro-id" placeholder="Buscar por ID">
+      <input type="date" id="filtro-fecha" placeholder="Buscar por fecha">
+      <button id="btn-consultar">Consultar</button>
+      <button id="btn-eliminar-seleccionados">Eliminar seleccionados</button>
+      <!-- Tabla de resultados -->
+      <table id="tabla-reportes">
+        <thead>
+          <tr>
+            <th>Sel</th>
+            <th>ID</th>
+            <th>Tipo</th>
+            <th>Descripción</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <!-- Reportes eliminados -->
+      <h7>Últimos eliminados</h7>
+      <ul id="lista-eliminados"></ul>
+    </div>
+    <!-- Mapa y detalles -->
+    <div id="mapa-contenedor">
+      <div id="map"></div>
+      <div id="info">
+        <div id="info-detalles"></div>
+      </div>
+      </div>
+    </div>
+    <button onclick="cerrarSesion()">Cerrar sesión</button>
+  <!-- Librerías externas -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+  <!-- Inicializar mapa -->
+  <!--<script>
+      const mapa = L.map('map').setView([3.3661, -76.5477], 16);
+      const capaBase = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(mapa);
+  </script>-->
+
+  <!-- Poblar select de especies -->
+  <script>
+    fetch("especies.php")
+      .then(res => res.json())
+      .then(data => {
+        const select = document.getElementById("filtro-nombre");
+        select.innerHTML = `<option value="todos">Todos los árboles</option>`;
+        data.forEach(nombre => {
+          const option = document.createElement("option");
+          option.value = nombre;
+          option.textContent = nombre;
+          select.appendChild(option);
+        });
+      });
+  </script>
+
+  <!-- Cargar y filtrar puntos de árboles, cluster y heatmap -->
+  <script>
+      let mapa, capaBase, capaIndividual = null, capaCluster = null, clusterGrupo = L.markerClusterGroup();
+      let controlCapas = null, capaCalor = null;
+
+      // Inicializa el mapa
+      mapa = L.map('map').setView([3.3661, -76.5477], 16);
+      capaBase = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(mapa);
+
+      function cargarTodo(nombre = "todos") {
+        // Cargar puntos y heatmap en paralelo
+        Promise.all([
+          fetch("datos.php").then(res => res.json()),
+          fetch("heatmap.php").then(res => res.json())
+        ]).then(([data, puntosHeatmap]) => {
+          // Limpiar capas anteriores
+          if (capaIndividual) mapa.removeLayer(capaIndividual);
+          if (capaCluster) mapa.removeLayer(clusterGrupo);
+          if (capaCalor) mapa.removeLayer(capaCalor);
+          clusterGrupo.clearLayers();
+
+          // Puntos individuales
+          capaIndividual = L.geoJSON(data, {
+            filter: f => nombre === "todos" || (f.properties.nombre_comun?.toLowerCase() === nombre.toLowerCase()),
+            pointToLayer: (f, latlng) => L.circleMarker(latlng, {
+              radius: 4, color: "#333", fillColor: "#228B22", fillOpacity: 0.8, weight: 1
+            }),
+            onEachFeature: (f, l) => {
+              l.bindPopup(`
+                <b>ID:</b> ${f.properties.id}<br><b>Nombre común:</b> ${f.properties.nombre_comun}
+                <br><b>Familia:</b> ${f.properties.familia}
+                <br><b>Especie:</b> ${f.properties.especie}
+                <br><b>Diametro (m):</b> ${f.properties.dap1_m}
+                <br><b>Altura (m):</b> ${f.properties.alt_total}
+                <br><b>Estado:</b> ${f.properties.estado_fitosanitario}
+                <br><b>Volumen (m3):</b> ${f.properties.vol1_total_m3}
+                <br><b>Biomasa total (kg):</b> ${f.properties.biomasa_total_kg}
+                <br><b>Carbono total (kg):</b> ${f.properties.carbono_kg}`);
+            }
+          });
+
+          // Clúster
+          capaCluster = L.geoJSON(data, {
+            filter: f => nombre === "todos" || (f.properties.nombre_comun?.toLowerCase() === nombre.toLowerCase()),
+            pointToLayer: (f, latlng) => L.circleMarker(latlng, {
+              radius: 4, color: "#333", fillColor: "#228B22", fillOpacity: 0.8, weight: 1
+            }),
+            onEachFeature: (f, l) => {
+              l.bindPopup(`<b>ID:</b> ${f.properties.id}<br><b>Nombre común:</b> ${f.properties.nombre_comun}`);
+            }
+          });
+          clusterGrupo.addLayer(capaCluster);
+
+          // Heatmap
+          capaCalor = L.heatLayer(puntosHeatmap, {
+            radius: 25,
+            blur: 20,
+            maxZoom: 17,
+            max : 1.0,
+            gradient: {
+                0.2: 'blue',
+                0.4: 'lime',
+                0.6: 'orange',
+                0.8: 'red'
+            }
+          });
+
+          // Agrega las capas al mapa
+          capaIndividual.addTo(mapa);
+          clusterGrupo.addTo(mapa);
+          capaCalor.addTo(mapa); // puedes decidir si añadirla por defecto o no
+
+          // Control de capas
+          if (controlCapas) mapa.removeControl(controlCapas);
+          controlCapas = L.control.layers(
+            { "Mapa base": capaBase },  // base layer (solo una activa)
+            {
+              "Puntos individuales": capaIndividual,
+              "Clúster de puntos": clusterGrupo,
+              "Mapa de calor": capaCalor
+            }
+          ).addTo(mapa);
+        });
+      }
+
+      // Evento al cambiar el filtro
+      document.getElementById("filtro-nombre").addEventListener("change", e => {
+        cargarTodo(e.target.value);
+      });
+
+      // Carga inicial
+      cargarTodo();
+    </script>
+
+
+
+  <!-- Cargar capas de estructuras y carreteras -->
+  <script>
+    let capaEstructuras, capaCarreteras;
+    // Estructuras (polígonos)
+    fetch("estructuras.php")
+      .then(res => res.json())
+      .then(data => {
+        capaEstructuras = L.geoJSON(data, {
+          style: {
+            color: "#ff7800",
+            weight: 2,
+            fillOpacity: 0.3
+          },
+          onEachFeature: function (feature, layer) {
+            layer.bindPopup(`<b>Estructura:</b> ${feature.properties.estructura}`);
+          }
+        }).addTo(mapa);
+        agregarControlCapas();
+      });
+    // Carreteras (líneas)
+    fetch("carreteras.php")
+      .then(res => res.json())
+      .then(data => {
+        capaCarreteras = L.geoJSON(data, {
+          style: {
+            color: "#0000FF",
+            weight: 2
+          },
+          onEachFeature: function (feature, layer) {
+            layer.bindPopup(`<b>Carretera</b>`);
+          }
+        }).addTo(mapa);
+        agregarControlCapas();
+      });
+    // Control de capas
+    function agregarControlCapas() {
+      if (capaEstructuras && capaCarreteras && !mapa._layerControl) {
+        const control = L.control.layers(null, {
+          "Estructuras": capaEstructuras,
+          "Carreteras": capaCarreteras
+        }).addTo(mapa);
+        mapa._layerControl = control; // Evita duplicar el control
+      }
+    }
+  </script>
+
+  <!-- Estadísticas por zona y especie (puedes usar esto para tablas o gráficos adicionales) -->
+  <script>
+    fetch("estadisticas_zona_especie.php")
+      .then(res => res.json())
+      .then(data => {
+        console.table(data);
+      });
+  </script>
+
+
+  <!-- Seleccionar y mover arboles -->
+  <script>
+    let modoEdicion = false;
+    let marcadorEditable = null;
+
+    document.getElementById("btn-editar-arbol").addEventListener("click", () => {
+      alert("Haz clic sobre un árbol para moverlo.");
+      modoEdicion = true;
+    });
+
+    mapa.on("click", function (e) {
+      if (!modoEdicion) return;
+
+      if (marcadorEditable) {
+        mapa.removeLayer(marcadorEditable);
+      }
+
+      marcadorEditable = L.marker(e.latlng, { draggable: true }).addTo(mapa);
+      alert("Arrastra el marcador a la nueva ubicación y vuelve a hacer clic para guardar.");
+
+      mapa.once("click", function () {
+        const nuevaLat = marcadorEditable.getLatLng().lat;
+        const nuevaLng = marcadorEditable.getLatLng().lng;
+        const id = prompt("ID del árbol a actualizar:");
+
+        fetch("modificar_arbol.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: id, lat: nuevaLat, lng: nuevaLng })
+        })
+          .then(res => res.json())
+          .then(resp => {
+            alert(resp.mensaje || "Ubicación actualizada");
+            mapa.removeLayer(marcadorEditable);
+            cargarDatos(); // recarga árboles
+          });
+
+        modoEdicion = false;
+      });
+    });
+</script>
+
+<!--Eliminar reportes-->
+<script>
+    document.getElementById("btn-consultar").addEventListener("click", () => {
+      const id = document.getElementById("filtro-id").value;
+      const fecha = document.getElementById("filtro-fecha").value;
+
+      fetch("consultar_reportes.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, fecha })
+      })
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.querySelector("#tabla-reportes tbody");
+          tbody.innerHTML = "";
+
+          data.forEach(r => {
+            const fila = `
+              <tr>
+                <td><input type="checkbox" value="${r.novedad_id}"></td>
+                <td>${r.novedad_id}</td>
+                <td>${r.tipo}</td>
+                <td>${r.observaciones}</td>
+                <td>${r.fecha}</td>
+              </tr>
+            `;
+            tbody.innerHTML += fila;
+          });
+        });
+    });
+
+    document.getElementById("btn-eliminar-seleccionados").addEventListener("click", () => {
+      const ids = Array.from(document.querySelectorAll("#tabla-reportes input[type='checkbox']:checked"))
+        .map(input => input.value);
+
+      if (ids.length === 0) {
+        alert("Selecciona al menos un reporte.");
+        return;
+      }
+
+      fetch("eliminar_seleccionados.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids })
+      })
+        .then(res => res.json())
+        .then(resp => {
+          alert(resp.mensaje);
+          document.getElementById("btn-consultar").click(); // refrescar
+          mostrarEliminados(resp.eliminados);
+        });
+    });
+
+    function mostrarEliminados(reportes) {
+      const ul = document.getElementById("lista-eliminados");
+      ul.innerHTML = "";
+      reportes.forEach(r => {
+        const li = document.createElement("li");
+        li.textContent = `ID ${r.id} - ${r.tipo} (${r.fecha})`;
+        ul.appendChild(li);
+      });
+}
+</script>
+
+<script>
+  // Consultar el rol al cargar
+  fetch("login.php?action=rol")
+    .then(res => res.json())
+    .then(data => {
+      if (data.rol === "invitado") {
+        ocultarFuncionesInvitado();
+      } else if (data.rol === "admin") {
+        console.log("Modo administrador activado");
+      } else {
+        alert("No ha iniciado sesión");
+        window.location.href = "login.html"; // redirige si no hay sesión
+      }
+    });
+
+  function ocultarFuncionesInvitado() {
+    const elementos = [
+      "#formulario-arbol",
+      "#btn-editar-arbol",
+      "#btn-eliminar-seleccionados",
+      "#btn-consultar",
+      "#filtro-id",
+      "#filtro-fecha",
+      "#tabla-reportes",
+      "#lista-eliminados",
+      "#titulo-modificacion", // opcional: si tienes títulos <h4> con ID
+      "#titulo-reportes"
+    ];
+    elementos.forEach(sel => {
+      const el = document.querySelector(sel);
+      if (el) el.style.display = "none";
+    });
+  }
+</script>
+
+<script>
+function cerrarSesion() {
+  fetch("login.php?action=logout")
+    .then(res => res.json())
+    .then(data => {
+      alert("Sesión cerrada");
+      window.location.reload();
+    });
+}
+</script>
+
+<script>
+let marcadorEstructura = null;
+
+function buscarEstructura() {
+  const termino = document.getElementById("busqueda-estructura").value;
+  if (!termino) return alert("Escribe un nombre o tipo de área");
+
+  fetch(`buscar_estructura.php?q=${encodeURIComponent(termino)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data || !data.geometry) {
+        alert("No se encontró la estructura.");
+        return;
+      }
+
+      const geojson = {
+        type: "Feature",
+        geometry: JSON.parse(data.geometry),
+        properties: {
+          estructura: data.estructura,
+          tipo_area: data.tipo_area
+        }
+      };
+
+      // Remueve marcador anterior si existe
+      if (marcadorEstructura) mapa.removeLayer(marcadorEstructura);
+
+      marcadorEstructura = L.geoJSON(geojson, {
+        style: {
+          color: "#FF0000", weight: 2, fillOpacity: 0.2
+        }
+      }).addTo(mapa);
+
+      mapa.fitBounds(marcadorEstructura.getBounds());
+    });
+}
+</script>
+
+<script>
+document.getElementById("busqueda-estructura").addEventListener("input", function () {
+  const texto = this.value;
+  if (texto.length < 2) return; // no buscar si es muy corto
+
+  fetch(`buscar_estructura.php?q=${encodeURIComponent(texto)}&modo=lista`)
+    .then(res => res.json())
+    .then(data => {
+      const lista = document.getElementById("lista-estructuras");
+      lista.innerHTML = "";
+      data.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.nombre; // puede ser estructura o tipo_area
+        lista.appendChild(opt);
+      });
+    });
+});
+</script>
+
+</body>
+
+</html>

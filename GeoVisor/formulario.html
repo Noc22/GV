@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulario de reporte</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 600px; }
+    label { display: block; margin-top: 1rem; }
+    textarea, input, select { width: 100%; padding: 0.5rem; }
+    .mapa { height: 300px; margin-top: 1rem; }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  <h1>Ingreso de información</h1>
+
+  <form method="POST" action="guardar_reporte.php">
+    <label for="tipo">Tipo de reporte</label>
+    <select name="tipo" id="tipo">
+      <option value="accidente">Accidente</option>
+      <option value="riesgo">Riesgo</option>
+      <option value="sugerencia">Sugerencia</option>
+    </select>
+
+    <label for="novedad_id">Novedad ID</label>
+    <input type="text" name="novedad_id" id="novedad_id" required>
+
+    <label for="id">Árbol ID</label>
+    <input type="text" name="arbol_id" id="arbol_id" required>
+
+    <label for="fecha">Fecha</label>
+    <input type="date" name="fecha" id="fecha" required>
+
+    <label for="tipo_area">Tipo de área</label>
+    <select name="tipo_area" id="tipo_area" required>
+      <option value="Administrativo">Administrativo</option>
+      <option value="Agropecuario">Agropecuario</option>
+      <option value="Servicios">Servicios</option>
+      <option value="Conservacion">Conservación</option>
+      <option value="Deporte">Deporte</option>
+    </select>
+
+    <label for="ubicacion">Ubicación</label>
+    <select name="ubicacion" id="ubicacion" required>
+      <option value="estructura">Estructura</option>
+      <option value="Enfermeria">Enfermería</option>
+      <option value="Establos2">Establos2</option>
+      <option value="Cancha_golf16">Cancha_golf16</option>
+      <option value="Cancha_padel">Cancha_padel</option>
+      <option value="Cancha_golf14">Cancha_golf14</option>
+      <option value="Admin">Admin</option>
+      <option value="Acueducto">Acueducto</option>
+      <option value="Cancha_golf12">Cancha_golf12</option>
+      <option value="Entrenam_caballos">Entrenam_caballos</option>
+      <option value="Juegos_infantiles">Juegos_infantiles</option>
+      <option value="Cancha_tenis2">Cancha_tenis2</option>
+      <option value="Casa_cural1">Casa_cural1</option>
+      <option value="Zona_Verde">Zona_Verde</option>
+      <option value="Cancha_tenis1">Cancha_tenis1</option>
+      <option value="Cancha_golf1">Cancha_golf1</option>
+      <option value="Cancha_golf17">Cancha_golf17</option>
+      <option value="Cancha_golf3">Cancha_golf3</option>
+      <option value="Cancha_golf7">Cancha_golf7</option>
+      <option value="Cancha_golf4">Cancha_golf4</option>
+      <option value="Establos1">Establos1</option>
+      <option value="Cancha_golf11">Cancha_golf11</option>
+      <option value="Cancha_equitacion">Cancha_equitacion</option>
+      <option value="Spa_Gimnasio">Spa_Gimnasio</option>
+      <option value="Vivero">Vivero</option>
+      <option value="Cancha_golf13">Cancha_golf13</option>
+      <option value="Parqueadero_motos">Parqueadero_motos</option>
+      <option value="Casa_hipica">Casa_hipica</option>
+      <option value="Cancha_golf10">Cancha_golf10</option>
+      <option value="Cancha_futbol">Cancha_futbol</option>
+      <option value="Parqueadero">Parqueadero</option>
+      <option value="Cancha_golfniños">Cancha_golfniños</option>
+      <option value="Cancha_futsala">Cancha_futsala</option>
+      <option value="Cancha_tenis3">Cancha_tenis3</option>
+      <option value="Cancha_golf2">Cancha_golf2</option>
+      <option value="Corrales">Corrales</option>
+      <option value="Cancha_golf5">Cancha_golf5</option>
+      <option value="Zona_restauracion">Zona_restauracion</option>
+      <option value="Piscinas">Piscinas</option>
+      <option value="Cadies">Cadies</option>
+      <option value="Cancha_golf6">Cancha_golf6</option>
+      <option value="Zona_verde2">Zona_verde2</option>
+      <option value="Hotel">Hotel</option>
+      <option value="Cancha_golf18">Cancha_golf18</option>
+      <option value="Deposito">Depósito</option>
+      <option value="Cancha_golf9">Cancha_golf9</option>
+      <option value="Entrena_golf">Entrena_golf</option>
+      <option value="Cancha_polo">Cancha_polo</option>
+      <option value="Cancha_golf8">Cancha_golf8</option>
+      <option value="Cancha_golf15">Cancha_golf15</option>
+      <option value="Casa_cural2">Casa_cural2</option>
+    </select>
+
+    <label for="estado_fitosanitario">Estado fitosanitario</label>
+    <select name="estado_fitosanitario" id="estado_fitosanitario" required>
+      <option value="bueno">Bueno</option>
+      <option value="regular">Regular</option>
+      <option value="malo">Malo</option>
+      <option value="muerto">Muerto</option>
+    </select>
+
+    <label for="afectacion">Afectación</label>
+    <select name="afectacion" id="afectacion" required>
+      <option value="cambios_color_copa">Cambios de color en la copa</option>
+      <option value="agallas">Agallas</option>
+      <option value="deformacion_hojas_tallos">Deformación de hojas y tallos</option>
+      <option value="perdida_hojas_tallos">Pérdida prematura de hojas y tallos</option>
+      <option value="tizon">Tizón</option>
+      <option value="marchitamiento_colapso">Marchitamiento y colapso</option>
+      <option value="cancros">Cancros</option>
+      <option value="podredumbres_descomposiciones">Podredumbres y descomposiciones</option>
+      <option value="danio_insectos">Daño por insectos y por alimentación animal</option>
+      <option value="infestacion_plagas">Infestación por plagas</option>
+      <option value="crecimiento_sobre_arboles">Crecimiento sobre los árboles</option>
+    </select>
+
+    <label for="poda">Poda</label>
+    <select name="poda" id="poda" required>
+      <option value="si">Sí</option>
+      <option value="no">No</option>
+    </select>
+
+    <label for="tratamiento">Tratamiento</label>
+    <select name="tratamiento" id="tratamiento" required>
+      <option value="fertilizacion_foliar">Fertilización foliar</option>
+      <option value="manejo_plagas">Manejo de plagas</option>
+      <option value="aplicacion_nutrientes_radiculares">Aplicación de nutrientes radiculares</option>
+      <option value="limpieza_epifitas">Limpieza de epífitas y retiro de objetos extraños</option>
+      <option value="retiro_individuo">Retiro del individuo</option>
+    </select>
+
+    <label for="observaciones">Observaciones</label>
+    <textarea name="observaciones" id="observaciones" required></textarea>
+
+    <label for="lat">Latitud</label>
+    <input type="text" name="lat" id="lat" readonly required>
+
+    <label for="lng">Longitud</label>
+    <input type="text" name="lng" id="lng" readonly required>
+
+    <div id="mapa" class="mapa"></div>
+
+    <button type="submit">Enviar</button>
+  </form>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <script>
+    const map = L.map('mapa').setView([3.37, -76.54], 16);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    let marker;
+
+     // Click libre para geolocalizar
+  map.on('click', function(e) {
+    if (marker) marker.setLatLng(e.latlng);
+    else marker = L.marker(e.latlng).addTo(map);
+
+    document.getElementById("lat").value = e.latlng.lat;
+    document.getElementById("lng").value = e.latlng.lng;
+  });
+
+  // Cargar estructuras y permitir clic sobre ellas
+  fetch("estructuras.php")
+    .then(res => res.json())
+    .then(data => {
+      const capaEstructuras = L.geoJSON(data, {
+        style: {
+          color: "#228B22",
+          weight: 2,
+          fillOpacity: 0.1
+        },
+        onEachFeature: function (feature, layer) {
+          layer.on("click", function (e) {
+            // Rellenar campos del formulario
+            document.getElementById("tipo_area").value = feature.properties.tipo_area;
+            document.getElementById("ubicacion").value = feature.properties.estructura;
+
+            // Extraer centroide de la geometría
+            const center = layer.getBounds().getCenter();
+
+            // Actualizar marcador y coordenadas
+            if (marker) marker.setLatLng(center);
+            else marker = L.marker(center).addTo(map);
+
+            document.getElementById("lat").value = center.lat;
+            document.getElementById("lng").value = center.lng;
+          });
+
+          layer.bindPopup(`<b>${feature.properties.estructura}</b><br>${feature.properties.tipo_area}`);
+        }
+      }).addTo(map);
+    });
+  </script>
+
+
+</body>
+</html>

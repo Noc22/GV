@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Estadísticas por Zona y Especie</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background: #f9f9f9;
+    }
+    canvas {
+      max-width: 100%;
+      margin-top: 2rem;
+    }
+    select {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Estadísticas por Zona y Especie</h1>
+  <label for="zona-select">Selecciona una zona:</label>
+  <select id="zona-select"></select>
+  <canvas id="grafico"></canvas>
+
+  <script>
+    let datosAgrupados = {};
+    let grafico = null;
+
+    fetch("estadisticas_zona_especie.php")
+      .then(res => res.json())
+      .then(data => {
+        const select = document.getElementById("zona-select");
+
+        // Agrupar por estructura
+        data.forEach(item => {
+          if (!datosAgrupados[item.estructura]) {
+            datosAgrupados[item.estructura] = [];
+          }
+          datosAgrupados[item.estructura].push(item);
+        });
+
+        // Poblar select
+        select.innerHTML = '<option value="">-- Selecciona una zona --</option>';
+        Object.keys(datosAgrupados).forEach(estructura => {
+          const option = document.createElement("option");
+          option.value = estructura;
+          option.textContent = estructura;
+          select.appendChild(option);
+        });
+
+        // Evento al cambiar selección
+        select.addEventListener("change", () => {
+          const estructura = select.value;
+          if (!estructura) return;
+
+          const datos = datosAgrupados[estructura];
+          const especies = datos.map(d => d.especie);
+          const cantidades = datos.map(d => d.cantidad);
+
+          const ctx = document.getElementById("grafico").getContext("2d");
+
+          if (grafico) grafico.destroy();
+          grafico = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: especies,
+              datasets: [{
+                label: `Cantidad de árboles en ${estructura}`,
+                data: cantidades,
+                backgroundColor: 'rgba(34,139,34,0.6)',
+                borderColor: 'rgba(34,139,34,1)',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              indexAxis: 'y',
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: ctx => `${ctx.parsed.x} árboles`
+                  }
+                }
+              },
+              scales: {
+                x: { beginAtZero: true }
+              }
+            }
+          });
+        });
+      });
+  </script>
+</body>
+</html>

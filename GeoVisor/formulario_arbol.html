@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Nuevo Árbol - Inventario Forestal</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; max-width: 800px; margin: auto; }
+    label { display: block; margin-top: 1rem; font-weight: bold; }
+    input, textarea { width: 100%; padding: 0.5rem; }
+    #mapa { height: 300px; margin-top: 1rem; }
+    button { margin-top: 2rem; padding: 0.8rem 1.2rem; background: #228B22; color: white; border: none; }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  <h1>Registro de nuevo árbol</h1>
+  <form method="POST" action="guardar_arbol.php">
+    
+    <label>Familia</label><input type="text" name="familia" required>
+
+    <label>Género</label><input type="text" name="genero" required>
+
+    <label>Especie</label><input type="text" name="especie" required>
+
+    <label>Nombre común</label><input type="text" name="nombre_comun" required>
+
+    <label>CAP1 (cm)</label><input type="number" step="0.01" name="cap1_cm">
+
+    <label>Altura del fuste (m)</label><input type="number" step="0.01" name="alt_fuste">
+
+    <label>Altura total (m)</label><input type="number" step="0.01" name="alt_total">
+
+    <label>Diámetro de copa (m)</label><input type="number" step="0.01" name="diametro_copa">
+
+    <label>Estado fitosanitario</label><input type="text" name="estado_fitosanitario">
+
+    <label>Densidad (g/cm³)</label><input type="number" step="0.01" name="densidad">
+
+    <label>Observaciones</label><textarea name="observaciones"></textarea>
+
+    <label>Latitud</label><input type="text" name="coord_n" id="lat" required readonly>
+
+    <label>Longitud</label><input type="text" name="coord_w" id="lng" required readonly>
+
+    <div id="mapa"></div>
+
+    <button type="submit">Guardar árbol</button>
+  </form>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('mapa').setView([3.37, -76.54], 16);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    let marker;
+
+    map.on('click', function(e) {
+      if (marker) marker.setLatLng(e.latlng);
+      else marker = L.marker(e.latlng).addTo(map);
+
+      document.getElementById("lat").value = e.latlng.lat.toFixed(6);
+      document.getElementById("lng").value = e.latlng.lng.toFixed(6);
+    });
+  </script>
+</body>
+</html>
