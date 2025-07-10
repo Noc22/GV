@@ -14,7 +14,7 @@ if ($estructura) {
     // Consulta árboles dentro de una estructura específica
     $sql = "
         SELECT 
-            arbol.id, arbol.nombre_comun, arbol.familia, arbol.especie,
+            arbol.arbol_id, arbol.nombre_comun, arbol.familia, arbol.especie,
             arbol.dap1_m, arbol.alt_total, arbol.estado_fitosanitario,
             arbol.vol1_total_m3, arbol.biomasa_total_kg, arbol.carbono_kg,
             ST_AsGeoJSON(arbol.geom) AS geometry
@@ -28,7 +28,7 @@ if ($estructura) {
     // Consulta todos los árboles
     $sql = "
         SELECT 
-            id, nombre_comun, familia, especie,
+            arbol_id, nombre_comun, familia, especie,
             dap1_m, alt_total, estado_fitosanitario,
             vol1_total_m3, biomasa_total_kg, carbono_kg,
             ST_AsGeoJSON(geom) AS geometry
@@ -52,7 +52,7 @@ while ($row = pg_fetch_assoc($result)) {
         "type" => "Feature",
         "geometry" => json_decode($row['geometry']),
         "properties" => [
-            "id" => $row['id'],
+            "arbol_id" => $row['arbol_id'],
             "nombre_comun" => $row['nombre_comun'],
             "familia" => $row['familia'],
             "especie" => $row['especie'],

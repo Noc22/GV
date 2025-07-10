@@ -239,7 +239,7 @@
             }),
             onEachFeature: (f, l) => {
               l.bindPopup(`
-                <b>ID:</b> ${f.properties.id}<br><b>Nombre común:</b> ${f.properties.nombre_comun}
+                <b>ID:</b> ${f.properties.arbol_id}<br><b>Nombre común:</b> ${f.properties.nombre_comun}
                 <br><b>Familia:</b> ${f.properties.familia}
                 <br><b>Especie:</b> ${f.properties.especie}
                 <br><b>Diametro (m):</b> ${f.properties.dap1_m}
@@ -258,7 +258,7 @@
               radius: 4, color: "#333", fillColor: "#228B22", fillOpacity: 0.8, weight: 1
             }),
             onEachFeature: (f, l) => {
-              l.bindPopup(`<b>ID:</b> ${f.properties.id}<br><b>Nombre común:</b> ${f.properties.nombre_comun}`);
+              l.bindPopup(`<b>ID:</b> ${f.properties.arbol_id}<br><b>Nombre común:</b> ${f.properties.nombre_comun}`);
             }
           });
           clusterGrupo.addLayer(capaCluster);
@@ -278,9 +278,12 @@
           });
 
           // Agrega las capas al mapa
-          capaIndividual.addTo(mapa);
-          clusterGrupo.addTo(mapa);
-          capaCalor.addTo(mapa); // puedes decidir si añadirla por defecto o no
+          if (nombre === "todos") {
+            capaIndividual.addTo(mapa);
+          } else {
+            clusterGrupo.addTo(mapa);
+            capaCalor.addTo(mapa);
+          }
 
           // Control de capas
           if (controlCapas) mapa.removeControl(controlCapas);
@@ -320,7 +323,7 @@
             fillOpacity: 0.3
           },
           onEachFeature: function (feature, layer) {
-            layer.bindPopup(`<b>Estructura:</b> ${feature.properties.estructura}`);
+            layer.bindPopup(`<b>Estructura:</b> ${feature.properties.estructura_id}`);
           }
         }).addTo(mapa);
         agregarControlCapas();
@@ -385,18 +388,18 @@
       mapa.once("click", function () {
         const nuevaLat = marcadorEditable.getLatLng().lat;
         const nuevaLng = marcadorEditable.getLatLng().lng;
-        const id = prompt("ID del árbol a actualizar:");
+        const arbol_id = prompt("ID del árbol a actualizar:");
 
         fetch("modificar_arbol.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: id, lat: nuevaLat, lng: nuevaLng })
+          body: JSON.stringify({ arbol_id: arbol_id, lat: nuevaLat, lng: nuevaLng })
         })
           .then(res => res.json())
           .then(resp => {
             alert(resp.mensaje || "Ubicación actualizada");
             mapa.removeLayer(marcadorEditable);
-            cargarDatos(); // recarga árboles
+            cargarTodo(); // recarga árboles
           });
 
         modoEdicion = false;
@@ -423,8 +426,8 @@
           data.forEach(r => {
             const fila = `
               <tr>
-                <td><input type="checkbox" value="${r.novedad_id}"></td>
-                <td>${r.novedad_id}</td>
+                <td><input type="checkbox" value="${r.reporte_id}"></td>
+                <td>${r.reporte_id}</td>
                 <td>${r.tipo}</td>
                 <td>${r.observaciones}</td>
                 <td>${r.fecha}</td>

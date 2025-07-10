@@ -13,7 +13,7 @@ if (!$conn) {
 // Estadísticas: cantidad de árboles por estructura y especie
 $sql = "
     SELECT 
-        zona.estructura AS estructura,
+        zona.estructura_id AS estructura,
         arbol.nombre_comun AS especie,
         COUNT(*) AS cantidad
     FROM 
@@ -23,9 +23,9 @@ $sql = "
     ON 
         ST_Within(arbol.geom, zona.the_geom)
     GROUP BY 
-        zona.estructura, arbol.nombre_comun
+        zona.estructura_id, arbol.nombre_comun
     ORDER BY 
-        zona.estructura, cantidad DESC
+        zona.estructura_id, cantidad DESC
 ";
 
 $result = pg_query($conn, $sql);

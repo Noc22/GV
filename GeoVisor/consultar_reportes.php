@@ -6,12 +6,12 @@ $data = json_decode(file_get_contents("php://input"), true);
 $id = $data["id"] ?? null;
 $fecha = $data["fecha"] ?? null;
 
-$sql = "SELECT novedad_id, tipo, observaciones, fecha FROM reportes WHERE true";
+$sql = "SELECT reporte_id, tipo, observaciones, fecha FROM reportes WHERE true";
 $params = [];
 $idx = 1;
 
 if ($id) {
-  $sql .= " AND novedad_id = $" . $idx++;
+  $sql .= " AND reporte_id = $" . $idx++;
   $params[] = $id;
 }
 

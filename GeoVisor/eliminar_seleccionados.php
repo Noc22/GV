@@ -14,11 +14,11 @@ $eliminados = [];
 
 // Preparar eliminación y registrar eliminados
 foreach ($ids as $id) {
-  $res = pg_query_params($conn, "SELECT novedad_id, tipo, observaciones, fecha FROM reportes WHERE novedad_id = $1", [$id]);
+  $res = pg_query_params($conn, "SELECT reporte_id, tipo, observaciones, fecha FROM reportes WHERE reporte_id = $1", [$id]);
   $r = pg_fetch_assoc($res);
   if ($r) {
     $eliminados[] = $r;
-    pg_query_params($conn, "DELETE FROM reportes WHERE novedad_id = $1", [$id]);
+    pg_query_params($conn, "DELETE FROM reportes WHERE reporte_id = $1", [$id]);
   }
 }
 

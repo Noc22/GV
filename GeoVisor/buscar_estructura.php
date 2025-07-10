@@ -13,9 +13,9 @@ if (!$q) {
 // Modo lista: solo sugerencias
 if ($modo === "lista") {
   $sql = "
-    SELECT DISTINCT estructura AS nombre
+    SELECT DISTINCT estructura_id AS nombre
     FROM estructuras
-    WHERE estructura ILIKE $1 OR tipo_area ILIKE $1 OR estructura ILIKE $1
+    WHERE estructura_id ILIKE $1 OR tipo_area ILIKE $1 OR estructura_id ILIKE $1
     LIMIT 10;
   ";
   $res = pg_query_params($conn, $sql, ['%' . $q . '%']);
@@ -27,9 +27,9 @@ if ($modo === "lista") {
 
 // Modo normal: devolver una geometría
 $sql = "
-  SELECT estructura, tipo_area, ST_AsGeoJSON(the_geom) AS geometry
+  SELECT estructura_id, tipo_area, ST_AsGeoJSON(the_geom) AS geometry
   FROM estructuras
-  WHERE estructura ILIKE $1 OR tipo_area ILIKE $1 OR estructura ILIKE $1
+  WHERE estructura_id ILIKE $1 OR tipo_area ILIKE $1 OR estructura_id ILIKE $1
   LIMIT 1;
 ";
 $res = pg_query_params($conn, $sql, ['%' . $q . '%']);

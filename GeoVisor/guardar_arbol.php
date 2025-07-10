@@ -8,7 +8,7 @@ if (!$conn) {
     die("Error de conexión a la base de datos.");
 }
 // --- AJUSTAR SECUENCIA DE ID AUTOMÁTICAMENTE ---
-$ajustar_sql = "SELECT setval('inventario_forestal_id_seq', (SELECT MAX(id) FROM inventario_forestal))";
+$ajustar_sql = "SELECT setval('inventario_forestal_id_seq', (SELECT MAX(arbol_id) FROM inventario_forestal))";
 pg_query($conn, $ajustar_sql);
 // Recolección de datos del formulario
 $campos = [

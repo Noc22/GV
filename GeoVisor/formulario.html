@@ -22,10 +22,10 @@
       <option value="sugerencia">Sugerencia</option>
     </select>
 
-    <label for="novedad_id">Novedad ID</label>
-    <input type="text" name="novedad_id" id="novedad_id" required>
+    <label for="reporte_id">Reporte ID</label>
+    <input type="text" name="reporte_id" id="reporte_id" required>
 
-    <label for="id">Árbol ID</label>
+    <label for="arbol_id">Árbol ID</label>
     <input type="text" name="arbol_id" id="arbol_id" required>
 
     <label for="fecha">Fecha</label>
@@ -177,7 +177,7 @@
           layer.on("click", function (e) {
             // Rellenar campos del formulario
             document.getElementById("tipo_area").value = feature.properties.tipo_area;
-            document.getElementById("ubicacion").value = feature.properties.estructura;
+            document.getElementById("ubicacion").value = feature.properties.estructura_id;
 
             // Extraer centroide de la geometría
             const center = layer.getBounds().getCenter();
@@ -190,7 +190,7 @@
             document.getElementById("lng").value = center.lng;
           });
 
-          layer.bindPopup(`<b>${feature.properties.estructura}</b><br>${feature.properties.tipo_area}`);
+          layer.bindPopup(`<b>${feature.properties.estructura_id}</b><br>${feature.properties.tipo_area}`);
         }
       }).addTo(map);
     });
